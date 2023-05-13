@@ -1,0 +1,92 @@
+---
+title: "Tidy01"
+author: "Sandy Illescas"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  fig.path = "Tidy01/Output",
+	message = FALSE,
+	warning = TRUE
+)
+
+
+```
+
+### Tidy Tuesday 
+#### (or all night Thursday and all day Friday)
+
+For this Tidy I will be using the most recent dataset.  I was planning to start with older ones, but being a single parent, I know all too well what childcare costs. 
+
+##### Let's Go
+
+## Load Libraries
+```{r}
+
+library(here)
+library(ggplot2)# for graph
+library(gganimate) #to animate
+library(readr) #to read data filefile
+library(dplyr) #to tribble data
+
+```
+
+Next, we have to load our dataset
+
+## Load Dataset
+<!-Good Lord, this data set is huge!!->
+```{r, include=TRUE}
+
+childcare_costs <- read.csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-05-09/childcare_costs.csv')
+
+glimpse(childcare_costs) # VERY large data set
+
+```
+
+####Now that the data is loaded, I want to check to see if there are any constants that need to be remove so these do not become a problem when we are trying to graph something.
+
+### JUST KIDDING...
+
+####Apparently I copied the "raw" dataset that needs to be cleaned and I couldn't figure out why it wasn't working, I tried to filter figure it out but all of the suggestions I found were not working, here is a screenshot of the message.
+
+####I am fairly certain that I wasn't mapping it correctly. 
+
+![Error](/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays/Tidy01/Data/Images/Error_Message.png)
+
+So I loaded the data the sure way to save time.
+
+#### I just realized can add a picture from anywhere on my computer by coding the full file path. Sweet.
+
+
+###Let's continue with our goal
+
+I am going to graph and animate the prices ranges of family-run daycare over time ggplot.
+
+```{r ggplot, echo=TRUE, warning=FALSE}
+
+# creating a scatter plot 
+p <- ggplot(childcare_costs, aes(x = study_year, y =  mfcc_preschool, color = study_year)) + # This is only counting family-run day care centers, but I thought that would be long title
+  geom_point(size = 3) + #allows us to choose the size of the point. 
+  scale_x_continuous(breaks = 2006:2020, labels = 2006:2020) + # this allows us to specify the tick values on the x-axis.
+    scale_y_continuous(labels = scales::dollar_format())+
+   # We need to see the symbol for money
+  labs(title = 'Childcare Price Over Time', x = 'Year', y = 'Price of Family Daycare (per week)') + #labels axis and title
+  theme_minimal() # setting theme
+
+p
+
+
+p_anim <- p +
+  transition_states(study_year, transition_length = 2, state_length = 1) +
+  labs(title = 'Year: {closest_state}') # transition_states allows us to animate the plot depending on what you want to base the color change off of. 
+
+animate(p_anim) # display the animation
+
+```
+
+
+

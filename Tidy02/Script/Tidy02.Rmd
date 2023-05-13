@@ -1,0 +1,130 @@
+---
+title: "Tidy02"
+author: "Sandy Illescas"
+date: "2023-05-11"
+output: 
+  html_document
+
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = FALSE
+)
+```
+
+
+### Load Libraries
+
+```{r, include=TRUE, echo=TRUE}
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(reticulate)
+
+```
+
+
+### Load Data
+
+```{r, echo=TRUE, include=TRUE}
+
+babynames <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-03-22/babynames.csv')
+
+```
+
+## I was actually having a difficult time with the data so instead of wasting time I followed a promt to create my ownd data, so that was really fun.
+
+
+## Create Example Data Frame
+
+```{r, echo=TRUE, include=TRUE}
+
+df <- data.frame(name = c("Emma", "Olivia", "Ava", "Isabella", "Sophia", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn", "Liam", "Noah", "William", "James", "Oliver", "Benjamin", "Elijah", "Lucas", "Mason", "Logan"),
+                 sex = c(rep("F", 10), rep("M", 10)),
+                 count = c(20355, 19529, 16237, 15527, 15158, 14365, 13191, 13074, 12816, 12537, 18696, 17718, 16752, 15688, 14687, 14569, 14277, 14077, 13579, 13489))
+
+```
+
+
+
+### Here I organized the in a way that made sense and would be easier to plot
+
+```{r, include=TRUE}
+
+
+top10_names <- df %>% # group data by name and sex, and calculate total count for each group
+  group_by(name, sex) %>% 
+  summarize(n = sum(count)) %>% 
+  ungroup() %>% 
+  arrange(sex, desc(n)) %>% 
+  group_by(sex) %>% 
+  top_n(10)
+
+```
+
+### Now that our data is ready, we can make a graph.
+#### I chose this graph mainly to remind myself that flipping the coordinates can be done easily if your data set isn't too complicated
+
+## Top 10 Names by Sex
+```{r, echo=TRUE, include=TRUE}
+
+p1 <- ggplot(top10_names, aes(x = reorder(name, n), y = n, fill = sex)) + # now we can  top 10 names by sex
+  geom_col() + #column chart
+  geom_text(aes(label = n), nudge_y = 2) + 
+  coord_flip() + # swaps the coordinates so we can see it sideways
+  scale_fill_viridis_d() +
+  labs(title = "Top 10 Baby Names by Sex", x = "Name", y = "Total Count")
+
+p1
+
+```
+
+
+### During our presentations someone put their values by their bars, but these numbers are so big, it doesnt' really make.  I personally found them more distracting than helpful, but they are easily removed...
+
+
+## Same Graph, just not so annoying
+
+```{r, echo=TRUE, include=TRUE}
+
+p2 <- ggplot(top10_names, aes(x = reorder(name, n), y = n, fill = sex)) + # now we can  top 10 names by sex
+  geom_col() + #column chart
+  coord_flip() + # swaps the coordinates so we can see it sideways
+  scale_fill_viridis_d() +
+  labs(title = "Top 10 Baby Names by Sex", x = "Name", y = "Total Count")
+
+p2
+
+
+```
+
+### My last graph for this was something that I sometimes struggle with too much color, so I made a graph represening the same data, but much easier on the eyes. 
+
+
+```{r, echo=TRUE, include=TRUE}
+
+p3 <- ggplot(top10_names, aes(x = name, y = n)) +
+  geom_segment(
+    aes(x = name, xend = name, y = 0, yend = n), 
+    color = "lightgray"
+    ) + 
+  geom_point(aes(color = sex), size = 3) +
+  scale_color_viridis_d() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p3
+
+
+
+```
+
+
+
