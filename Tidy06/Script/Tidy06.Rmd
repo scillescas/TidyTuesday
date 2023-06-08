@@ -1,0 +1,119 @@
+---
+title: "Tidy06"
+author: "Sandy Illescas"
+date: "2023-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = TRUE
+)
+
+```
+
+# Load Libraries
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(cowplot) # needed to add a Main title to the combined graphs
+library(patchwork) # needed to combine graphs
+
+
+```
+
+# Load Data
+```{r}
+
+school_diversity <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-09-24/school_diversity.csv")
+
+school_diversity
+
+```
+
+# Organizing and Filtering Data
+```{r}
+
+filtered_data <- school_diversity %>%
+  select(ST, SCHOOL_YEAR, AIAN, Asian, Black, Hispanic, Total) # this allows us to choose what data columns to keep
+
+
+CA_data <- filtered_data %>%
+  filter(ST == "CA") # this allows us to only keep California
+
+CA_grouped <- filtered_data %>%
+  group_by(SCHOOL_YEAR) # this allows us to compare data groups by school year to compare each ethnicity
+
+```
+
+
+# Making Our Graphs
+I wanted to compare each minority population attending school (individually) between the two available school years. Please note the notes for each line of code are typed out in the first graph only, but all the graphs used the same lines of code. 
+
+```{r}
+
+graph_AIAN <- ggplot(filtered_data) +
+  geom_bar(aes(x = SCHOOL_YEAR, y = AIAN), stat = "identity", fill = "red", width = 0.5) + #creates bar graph comparing the two school years
+  labs(x = "School Year", y = "Population", 
+       title = "American Indian & American Native") + #this allows us to label our axis and individual titles of each graph
+  theme_minimal() + # sets ggplot theme
+  theme(plot.title = element_text(hjust = 0.5)) + # this allows us to control how far the title is from the graph so it's not too close or overlapping
+  theme(plot.margin = margin(10, 10, 10, 10)) # this allows to set the margins for all the plots individually and apply the same margins for all graphs for the sake of maintaining uniformity. 
+
+graph_Asian <- ggplot(filtered_data) +
+  geom_bar(aes(x = SCHOOL_YEAR, y = Asian), stat = "identity", fill = "blue", width = 0.5) +
+  labs(x = "School Year", y = "Population",
+       title = "Asian") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+
+graph_Black <- ggplot(filtered_data) +
+  geom_bar(aes(x = SCHOOL_YEAR, y = Black), stat = "identity", fill = "green", width = 0.5) +
+  labs(x = "School Year", y = "Population",
+       title = "Black") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+
+graph_Hispanic <- ggplot(filtered_data) +
+  geom_bar(aes(x = SCHOOL_YEAR, y = Hispanic), stat = "identity", fill = "orange", width = 0.5) +
+  labs(x = "School Year", y = "Population",
+       title = "Hispanic") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+
+```
+# Here I call each graph individually
+```{r}
+
+graph_AIAN
+graph_Asian
+graph_Black
+graph_Hispanic
+
+```
+
+# Here I give a title to the graphs as a whole and use patchwork to combine all four graphs
+```{r}
+
+main_title <- ggdraw() + # we can use the "cowplot" package to add a main title to our combined graphs 
+  draw_label("California School Diversity Analysis",  # this adds the title
+             x = 0.5, y = 0.97, 
+             hjust = 0.5, vjust = 1, # this allows us to indicate/change location of our title
+             size = 14, fontface = "bold") # this allows us to assign font size and type, such as "bold"
+
+combined_graphs <- (graph_AIAN + graph_Asian + graph_Black + graph_Hispanic) + # this allows us to combine all the graphs
+  plot_layout(ncol = 2, widths = c(5, 5), heights = c(5, 5)) 
+
+plot_grid(main_title, combined_graphs, ncol = 1, rel_heights = c(0.1, 0.9))
+
+```
+
