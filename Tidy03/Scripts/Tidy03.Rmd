@@ -1,0 +1,61 @@
+---
+title: "Untitled"
+author: "Sandy Illescas"
+date: "2023-05-13"
+output: html_document
+---
+
+
+```{r}
+
+library(ggplot2)
+library(lubridate)
+library(gganimate)
+library(dplyr)
+
+# Read the data
+drought <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-07-20/drought.csv")
+
+# Convert the map_date column to date format
+drought$map_date <- as.Date(drought$valid_end)
+
+# Extract the year from the map_date column
+drought$year <- lubridate::year(drought$valid_end)
+
+# Filter the data for the desired years using "dplyr"
+drought_filtered <- drought %>%
+  filter(year >= 2000 & year <= 2020, state_abb != "CA")
+
+# Calculate the average area_pct by year and drought_lvl
+drought_avg <- drought_filtered %>%
+  group_by(year, drought_lvl) %>%
+  summarize(avg_area_pct = mean(pop_total, na.rm = TRUE),
+            avg_pop_total = mean(pop_total, na.rm = TRUE)) %>%
+  ungroup()
+
+# Create the plot
+g <- ggplot(drought_avg, aes(avg_pop_total, avg_area_pct, color = drought_lvl)) +
+  geom_point(size = 3) +
+  geom_smooth(aes(group = year), 
+              method = "lm", 
+              show.legend = FALSE) +
+  facet_wrap(~year, scales = "free") 
+
+my_colors <- c("#FF0000", "#00FF00", "#0000FF")  # Replace with your desired color values
+
+# Bin avg_area_pct into three categories
+drought_avg$avg_area_pct_bin <- cut(drought_avg$avg_area_pct, breaks = 2)
+
+anim <- ggplot(data = drought_avg, aes(x = avg_pop_total, y = avg_area_pct_bin, fill = avg_area_pct_bin)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = my_colors, name = "% in Drought (log10)") +
+  labs(title = "Population vs. Percent of State in Drought: Year  {closest_state}", x= "Population (log10)", y = "Percent of State in Drought(log10)") +
+  theme_minimal() +
+  theme(legend.position = "top") +
+  transition_states(year, transition_length = 8, state_length = 1) +
+  ease_aes('linear')
+
+animate(anim)
+
+```
+

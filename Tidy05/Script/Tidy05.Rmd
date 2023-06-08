@@ -1,0 +1,79 @@
+---
+title: "Tidy05"
+author: "Sandy Illescas"
+date: "2023-05-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = TRUE
+)
+```
+
+# Load Libraries
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(extrafont)
+library(stringr)
+
+# Load the desired font
+loadfonts()
+
+```
+
+
+# Load Data
+```{r}
+
+ramen_ratings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-04/ramen_ratings.csv")
+
+```
+
+# Filtering and Organizing Data
+We want to only keep the reported ratings for a variety of vegan ramen  products worldwide. 
+```{r}
+
+vegan_ramen <- ramen_ratings %>%
+  filter(grepl("vegan", variety, ignore.case = TRUE)) # this allows us to filter the data frame to select rows where the "variety" column contains "vegan"
+
+vegan_ramen$variety <- factor(vegan_ramen$variety, levels = unique(vegan_ramen$variety)) # This allows us to order the varieties in ascending order so our graph looks neat. 
+
+vegan_ramen$variety_abbrev <- str_wrap(paste(vegan_ramen$variety, sep = "\n"), width = 15) # this allows us to wrap the x-axis labels so the whole name isn't on one line causing it to cut off or take up too much space
+
+# Generate rainbow colors for each unique variety
+#num_varieties <- length(unique(vegan_ramen$variety))
+
+
+# View the resulting data frame
+vegan_ramen
+
+```
+
+# Making the graph
+I know we practiced scatter plots in class, but I wanted to practice changing the icons, font, and changing wrapping the text of the x-axis so it doesn't run off the page. 
+```{r}
+
+scatter_plot <- ggplot(vegan_ramen, aes(x = reorder(variety, stars, FUN = median), y = stars)) +
+  geom_point(shape = 18, size = 4, color = "firebrick") + # this allows us to change the shape, size and color of the icon on graph
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), # this allows us to change the angle of the text in the x-axis so the titles don't overlap
+        text = element_text(family = "Chalkboard")) + 
+  labs(x = "Ramen Variety", y = "Rated Stars",
+       title = "Distribution of Stars for Vegan Ramen Varieties") +# this allows us to rename our axis and title
+  coord_fixed(ratio = 0.4) + # this allows us to change the aspect ratio of the plot making the x axis 0.4 times wider than the height of the plot for easier visualization and less crowding
+  scale_x_discrete(labels = vegan_ramen$variety_abbrev) + #abbreviates titles in x-axis so it looks neater
+  theme(axis.text.x = element_text(margin = margin(t = 10)))# this allows us to adjust the margin for the x-axis so it does not run off the graph or cut off
+
+scatter_plot
+
+
+
+```
+

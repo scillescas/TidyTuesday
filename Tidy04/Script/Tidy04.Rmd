@@ -1,0 +1,85 @@
+---
+title: "Tidy04"
+author: "Sandy Illescas"
+date: "2023-05-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = FALSE
+)
+```
+
+# Loading Libraries and Data
+```{r, include=TRUE}
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(plotly)
+
+
+data_url <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-10-23/movie_profit.csv" # this allows us to pull data from the CSV file from the TidyTuesday repository URL 
+Movies <- read.csv(data_url)
+
+```
+
+# Filtering Data 
+I happen to love horror movies so I wanted to see the top 13 (why 13? Ode to Friday the 13th) most profitable movies based on their domestic gross minus their production budget to give us an actual profit amount. This required to filter data to select only certain columns as seen below and filtering only horror movies since there are all types of genres and 3400+ rows in original data set. I also had to change the order of the dates to show year first so I could filter out the top 10 in the past fifty years. 
+```{r, include=TRUE}
+
+Horror_Movies <- Movies %>%
+  select(release_date, movie, production_budget, domestic_gross, genre) %>% # this allows us to select the desired columns
+  filter(genre == "Horror") %>% # this allows us to filter by genre, keeping only horror movies. 
+
+mutate(release_date = as.Date(release_date, format = "%m/%d/%Y")) %>%
+  mutate(release_date = format(release_date, "%Y/%m/%d")) %>% ## these two lines allows us to re-format date from mm/dd/yyyy -> E
+
+filter(release_date >= 1968 & release_date <= 2018) %>%
+  select(-release_date) %>% #This allows us to filter out data and select 50 years for comparison 1968-2018 which is where our data ends. 
+mutate(profit = domestic_gross - production_budget)
+
+
+Horror_Movies <- Horror_Movies %>%
+  mutate(percentage_profit = ceiling((profit / production_budget) * 100)) %>% # this allows us to calculate the percentage profit by using the information that has been calculated above, this is the percentage I will show on graph and how the data will be represented in descending order. 
+  top_n(n = 13, wt = percentage_profit) #this filters our data to only include the top 13 movies based on the percentage profit. 
+
+
+Horror_Movies
+
+```
+
+# Making a Pie Graph
+I have been trying to practice different ways to represent data and I thought a pie graph was kinda neat. I know they're not your favorite and I certainly would not use it to represent important data, but I thought it was a good way to see this data in a fun way and be able to interact with it.  You can click on titles in legend to remove or add them to the graph to visualize the smaller amounts better. 
+
+```{r, include=TRUE}
+
+# Format the percentage values without decimals and with percentage sign
+formatted_percentages <- paste0(round(Horror_Movies$percentage_profit), "%")
+
+# Create the pie chart using plotly
+p <- plot_ly(Horror_Movies, labels = ~movie, values = ~percentage_profit,
+              type = "pie",# type of graph we want to make
+              textinfo = "label+text", #what we want to visibly include on our graph
+              text = ~paste0(formatted_percentages, "<br>"), #include percentages next to name on graph
+              hovertemplate = "%{label}<br>%{text}<extra></extra>",#this allows us to decide what information is displayed when we hover over a piece of the pie 
+              marker = list(colors = c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5", "#FFA07A", "#00CED1", "#800080"))) %>% # List of colors for eachmovie
+  layout(title = "Top 13 Percent Profit Horror Movies Between 1968-2018", #layout is used to name graph, control legend, margins, height and width of graph
+         showlegend = TRUE, # this allows us to see the legend
+         margin = list(t = 50, b = 500), # this allows us to adjust the margins...I had to look this one up because my graph was cutting off at the bottom which was fixed with adjusing the margin at the top and bottom and also adjusting the height and width below.
+         height = 900,  # this allows us to adjust the height of the pie chart
+         width = 800)  # this allows us to adjust the width of the pie chart
+
+# Display the interactive pie chart
+p
+
+
+```
+
+
