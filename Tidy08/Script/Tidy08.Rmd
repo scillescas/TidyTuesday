@@ -1,0 +1,57 @@
+---
+title: "Tidy08"
+author: "Sandy Illescas"
+date: "2023-06-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = TRUE
+)
+```
+
+
+# Load Libraries
+```{r}
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+
+```
+
+
+# Load Dataset
+```{r}
+
+age_gaps <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-14/age_gaps.csv')
+
+```
+
+# Organize and Filter Data
+```{r}
+
+age_diff_avg <- age_gaps %>% #creating a new dataset to work with
+  group_by(character_1_gender, character_2_gender) %>% # this allows us to group based on main character gender
+  summarise(avg_age_diff = mean(age_difference, na.rm = TRUE)) #this allows us to take the mean for each group
+
+```
+
+# Create Graph
+I wanted to create a graph showing the differnce in age difference between the main character "couples" dependant on wether the MAIN character was a man or a woman.  What this graph shows, that in movies where the MAIN character is a man, there are more cases where the age difference is larger compared to when a woman is the MAIN character.  This shows us that when women are the MAIN character, there are more instances where the age gap is smaller.  I thought a violin plot would be a good tool to practice and also is able to help us visualize the distribution among the two groups. 
+```{r}
+ggplot(age_gaps, aes(x = factor(character_1_gender), y = age_difference, fill = factor(character_1_gender))) + # this allows us to create a graph to compaare the age difference of age gap between the two groups
+  geom_violin() + # this allows us to chage our plot to a violin type plot
+  labs(x = "Main Character Gender", y = "Age Difference",
+       title = "Age Difference of Couples Based on Main Character Gender") + # this allow us to change the titles to the x-axis, y-axis, and the main graph title
+  scale_fill_discrete(name = NULL) + #this allows us choose to not name the legend since it is unnecessary 
+  theme_clean()+ # This gives us a cleaner graph with dotted lines
+  theme(legend.position = "none", plot.title = element_text(size = 15, face = "bold")) # this allows us to not include the legend, change the plot title size, and also make it bold
+
+```
+

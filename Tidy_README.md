@@ -7,3 +7,5 @@
   I look forward to using the skills I have learned from this course and apply it whenever the opportunity arises. I am especially excited to use the skills I learned while doing all my tidy Tuesdays...even if I did them all in one day.  It actually motivated me to work with more Tidy Tuesday data sets, just so I get some more practice in.  
   
   I hope you enjoy what I've come up with, these were fun!
+  
+  Yaaaay!!! I'm finally **DONE**

@@ -1,0 +1,77 @@
+---
+title: "Tidy07"
+author: "Sandy Illescas"
+date: "2023-06-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	message = FALSE,
+	root.dir = "~/Users/SandyCruz/Desktop/Repositories/Illescas_Tidy_Tuesdays",
+  fig.path = "Output/",
+	warning = TRUE,
+	include = TRUE
+)
+
+```
+
+
+# Load Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(ggthemes)
+library(patchwork)
+library(lubridate)
+```
+
+# Load Data 
+```{r}
+
+egg_production  <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-11/egg-production.csv')
+
+egg_production
+
+```
+
+# Organizing and Filtering Data
+I want to create a graph comparing the yearly availability of organic vs. non-organic eggs. So I'm going to filer out only the data I need.
+```{r}
+
+table_eggs <- egg_production %>%
+  filter(prod_type == "table eggs") # this allows us to only table egg values
+
+add_year <- table_eggs %>%
+  mutate(year = year(ymd(observed_month))) %>% #  this allows us to make a new column with only the year
+  
+  select(year, prod_type, prod_process) # this allows us to only the columns we want and get rid of everything else
+
+sum_eggs <- add_year %>%
+  group_by(year, prod_process) %>% # this allows us to group the data based on how they were produced and the year
+  
+  summarise(count = n()) %>% # this allows us to count each type of entry
+  
+  mutate(percent = count / sum(count) * 100) # this allows us to turn our count into a percentage so the graph can be easier to visualize. 
+```
+
+
+# Making the Graph
+
+```{r}
+
+ggplot(sum_eggs, aes(x = year, y = percent, fill = prod_process)) + # this allows us to create a graph and fill it to 100% so we can compare all of the values directly on top of one another
+  geom_bar(stat = "identity") + # this allows us to create a bar graph 
+  scale_fill_manual(values = c("#990000", "#ff9933", "#00CC00"), # this allows us to manually assign the colors we are using for each type of production process
+                    labels = c("All", "Cage-Free (Non-Organic)", "Cage-Free (Organic)")) + # this allows us to chage the legend values. 
+  labs(title = "Percentage of the Different Processes of Table Eggs (2016-2021)", # this allows us to name our graph
+       x = "Year", y = "Percentage", # this allows us to change the x and y titles
+       fill = "Production Method") + # this allows us to change the legend name
+  scale_x_continuous(breaks = seq(2016, 2021, by = 1)) + # this allows us to have a tic mark for each yearm, since the graph was automatically skipping years in the x-axis
+  theme_minimal() + # change the theme
+  theme(plot.title = element_text(size = 15, face = "bold")) # change the plot title size
+        
+
+```
+
